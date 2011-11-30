@@ -1,0 +1,11 @@
+{
+  "name": "spine-adapter",
+  "version": "0.0.1",
+  "description": "kanso adapter for spine",
+  "modules": "spine",
+  "dependencies": {
+    "settings": null,
+    "modules": null,
+    "spine": null
+  }
+}
