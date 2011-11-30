@@ -15,7 +15,6 @@ Model = Spine.Model;
 Spine.Model.include({
   toJSON: function() {
     var key, result, _i, _len, _ref;
-    console.log;
     result = {};
     _ref = this.constructor.attributes;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -36,7 +35,6 @@ Spine.Model.include({
   },
   fromJSON: function(objects) {
     var value, _i, _len, _results;
-    console.log("from json");
     if (!objects) {
       return;
     }
@@ -51,7 +49,6 @@ Spine.Model.include({
       }
       return _results;
     } else {
-      console.log(this);
       return new this(objects);
     }
   }
@@ -131,8 +128,6 @@ Collection = (function() {
     }).success(this.recordsResponse).error(this.errorResponse);
   };
   Collection.prototype.all = function(params) {
-    console.log("all");
-    console.log(CouchAjax.getURL(this.model));
     return this.ajax(params, {
       type: 'GET',
       url: CouchAjax.getURL(this.model)
@@ -143,22 +138,17 @@ Collection = (function() {
     if (params == null) {
       params = {};
     }
-    console.log("fetch");
-    console.log(params);
     if (id = params.id) {
-      console.log("yes id");
       delete params.id;
       return this.find(id, params).success(__bind(function(record) {
         return this.model.refresh(record);
       }, this));
     } else {
-      console.log("no id");
       return this.all(params);
     }
   };
   Collection.prototype.recordsResponse = function(data, status, xhr) {
     var row, x, _i, _len, _ref;
-    console.log("collection record response");
     x = [];
     _ref = data.rows;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -184,8 +174,6 @@ Singleton = (function() {
     this.model = this.record.constructor;
   }
   Singleton.prototype.reload = function(params, options) {
-    console.log("reload");
-    console.log(CouchAjax.getURL(this.record));
     return this.queue(__bind(function() {
       return this.ajax(params, {
         type: 'GET',
@@ -194,9 +182,7 @@ Singleton = (function() {
     }, this));
   };
   Singleton.prototype.create = function(params, options) {
-    console.log(require('duality/core').getDBURL());
     return this.queue(__bind(function() {
-      console.log("create");
       return this.ajax(params, {
         type: 'POST',
         data: JSON.stringify(this.record),
@@ -205,7 +191,6 @@ Singleton = (function() {
     }, this));
   };
   Singleton.prototype.update = function(params, options) {
-    console.log(CouchAjax.getURL(this.record));
     return this.queue(__bind(function() {
       return this.ajax(params, {
         type: 'PUT',
@@ -215,11 +200,12 @@ Singleton = (function() {
     }, this));
   };
   Singleton.prototype.destroy = function(params, options) {
-    console.log(CouchAjax.getURL(this.record));
+    console.log(JSON.stringify(this.record));
+    console.log("{'_rev': " + (JSON.stringify(this.record._rev)) + "}");
     return this.queue(__bind(function() {
       return this.ajax(params, {
         type: 'DELETE',
-        url: CouchAjax.getURL(this.record)
+        url: require('duality/core').getDBURL() + ("/" + this.record._id + "?rev=" + this.record._rev)
       }).success(this.recordResponse(options)).error(this.errorResponse(options));
     }, this));
   };
@@ -227,7 +213,6 @@ Singleton = (function() {
     if (options == null) {
       options = {};
     }
-    console.log("records");
     return __bind(function(data, status, xhr) {
       log(data);
       log(status);
@@ -238,7 +223,6 @@ Singleton = (function() {
         log(xhr.rows);
         return data = this.model.fromJSON(xhr.rows);
       } else {
-        console.log(data.id);
         return this.queue(__bind(function() {
           return this.ajax({
             type: 'GET',
@@ -254,9 +238,6 @@ Singleton = (function() {
     }
     return __bind(function(xhr, statusText, error) {
       log("got records");
-      console.log(xhr);
-      console.log(statusText);
-      console.log(error);
       return this.model.fromJSON(xhr);
     }, this);
   };
@@ -264,7 +245,6 @@ Singleton = (function() {
     if (options == null) {
       options = {};
     }
-    console.log("error");
     return __bind(function(xhr, statusText, error) {
       var _ref;
       this.record.trigger('ajaxError', xhr, statusText, error);

@@ -1,4 +1,5 @@
 module.exports = [  
+
   from: "/:modelname"
   to: "_view/docs_by_modelname"
   query:

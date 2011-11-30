@@ -4,12 +4,12 @@ Model  = Spine.Model
 # settings = require("settings/root")
 # db = require("db")
 
-# console.log 
+# #console.log 
 # Overrides "toJSON" of Models to make them work with couch.
 Spine.Model.include
   toJSON: ->
     # The first part is copied from the default toJSON method in spine
-    console.log 
+    #console.log 
     result = {}
     for key in @constructor.attributes when key of @
       if typeof @[key] is 'function'
@@ -19,18 +19,19 @@ Spine.Model.include
     # Set the id as _id
     result._id = @id if @id
     result.modelname = @constructor.className.toLowerCase()
+    
     # result.modelname = 
     # just like the default, return the result.
     result
   fromJSON: (objects) ->
-    console.log "from json"
+    #console.log "from json"
     return unless objects
     if typeof objects is 'string'
       objects = JSON.parse(objects)
     if isArray(objects)
       (new @(value) for value in objects)
     else
-      console.log @
+      #console.log @
       new @(objects)
 
 CouchAjax =
@@ -91,8 +92,8 @@ class Collection extends Base
      .error(@errorResponse)
     
   all: (params) ->
-    console.log "all"
-    console.log CouchAjax.getURL(@model)
+    #console.log "all"
+    #console.log CouchAjax.getURL(@model)
     @ajax(
       params,
       type: 'GET',
@@ -101,30 +102,30 @@ class Collection extends Base
      .error(@errorResponse)
     
   fetch: (params = {}) ->
-    console.log "fetch"
-    console.log params
+    #console.log "fetch"
+    #console.log params
     if id = params.id
-      console.log "yes id"
+      #console.log "yes id"
       delete params.id
       @find(id, params).success (record) =>
         @model.refresh(record)
     else
-      console.log "no id"
+      #console.log "no id"
       @all(params)#.success (records) =>
         #@model.refresh(records)
     
   recordsResponse: (data, status, xhr) =>
-    console.log "collection record response"
-    # console.log xhr.responseText
+    #console.log "collection record response"
+    # #console.log xhr.responseText
     x = []
     for row in data.rows
       x.push row.doc
 
     @model.refresh(x)
-      # console.log JSON.stringify(row.doc)
-    # console.log x
+      # #console.log JSON.stringify(row.doc)
+    # #console.log x
     xhr.responseText = JSON.stringify(x)
-    # console.log xhr.responseText
+    # #console.log xhr.responseText
     @model.trigger('ajaxSuccess', null, status, xhr)
 
   errorResponse: (xhr, statusText, error) =>
@@ -136,8 +137,8 @@ class Singleton extends Base
     @model = @record.constructor
   
   reload: (params, options) ->
-    console.log "reload"
-    console.log CouchAjax.getURL(@record)
+    #console.log "reload"
+    #console.log CouchAjax.getURL(@record)
     @queue =>
       @ajax(
         params,
@@ -147,9 +148,9 @@ class Singleton extends Base
        .error(@errorResponse(options))
   
   create: (params, options) ->
-    console.log require('duality/core').getDBURL()
+    #console.log require('duality/core').getDBURL()
     @queue =>
-      console.log("create")
+      #console.log("create")
       @ajax(
         params,
         type: 'POST'
@@ -159,7 +160,7 @@ class Singleton extends Base
        .error(@errorResponse(options))
 
   update: (params, options) ->
-    console.log CouchAjax.getURL(@record)
+    #console.log CouchAjax.getURL(@record)
     @queue =>
       @ajax(
         params,
@@ -170,19 +171,22 @@ class Singleton extends Base
        .error(@errorResponse(options))
   
   destroy: (params, options) ->
-    console.log CouchAjax.getURL(@record)
+    #console.log "destroy"
+    #console.log CouchAjax.getURL(@record)
+    console.log JSON.stringify(@record)
+    console.log "{'_rev': #{JSON.stringify(@record._rev)}}"
     @queue =>
       @ajax(
         params,
         type: 'DELETE'
-        url:  CouchAjax.getURL(@record)
+        url:  require('duality/core').getDBURL() + "/#{@record._id}?rev=#{@record._rev}" #CouchAjax.getURL(@record)
       ).success(@recordResponse(options))
        .error(@errorResponse(options))
 
   # Private
 
   recordResponse: (options = {}) =>
-    console.log "records"
+    #console.log "records"
     (data, status, xhr) =>
       log data
       log status
@@ -193,7 +197,7 @@ class Singleton extends Base
         log xhr.rows
         data = @model.fromJSON(xhr.rows)
       else
-        console.log data.id
+        #console.log data.id
         # data = @model.fromJSON(data)
         @queue =>
           @ajax(
@@ -216,13 +220,13 @@ class Singleton extends Base
   getRecordsResponse: (options = {}) =>
     (xhr, statusText, error) =>
       log "got records"
-      console.log xhr
-      console.log statusText
-      console.log error
+      #console.log xhr
+      #console.log statusText
+      #console.log error
       @model.fromJSON(xhr)
   
   errorResponse: (options = {}) =>
-    console.log "error"
+    #console.log "error"
     (xhr, statusText, error) =>
       @record.trigger('ajaxError', xhr, statusText, error)
       options.error?.apply(@record)
