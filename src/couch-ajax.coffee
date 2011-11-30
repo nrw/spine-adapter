@@ -162,11 +162,12 @@ class Singleton extends Base
   update: (params, options) ->
     #console.log CouchAjax.getURL(@record)
     @queue =>
+      delete @record._rev
       @ajax(
         params,
         type: 'PUT'
         data: JSON.stringify(@record)
-        url:  CouchAjax.getURL(@record)
+        url:  require('duality/core').getDBURL() + "/#{@record._id}"
       ).success(@recordResponse(options))
        .error(@errorResponse(options))
   

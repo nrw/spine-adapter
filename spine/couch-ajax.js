@@ -192,10 +192,11 @@ Singleton = (function() {
   };
   Singleton.prototype.update = function(params, options) {
     return this.queue(__bind(function() {
+      delete this.record._rev;
       return this.ajax(params, {
         type: 'PUT',
         data: JSON.stringify(this.record),
-        url: CouchAjax.getURL(this.record)
+        url: require('duality/core').getDBURL() + ("/" + this.record._id)
       }).success(this.recordResponse(options)).error(this.errorResponse(options));
     }, this));
   };
