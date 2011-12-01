@@ -1,5 +1,8 @@
 module.exports = [
   {
+    from: "/model/:id",
+    to: "_update/model/:id"
+  }, {
     from: "/:modelname",
     to: "_view/docs_by_modelname",
     query: {

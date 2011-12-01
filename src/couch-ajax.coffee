@@ -1,6 +1,7 @@
-Spine ?= require('spine')
+Spine ?= require('spine/core')
 $      = Spine.$
 Model  = Spine.Model
+utils = require("duality/utils")
 # settings = require("settings/root")
 # db = require("db")
 
@@ -161,13 +162,15 @@ class Singleton extends Base
 
   update: (params, options) ->
     #console.log CouchAjax.getURL(@record)
+    url = utils.getBaseURL() + "/model/#{@record._id}" #CouchAjax.getURL(@record)
+    console.log url
     @queue =>
       delete @record._rev
       @ajax(
         params,
         type: 'PUT'
         data: JSON.stringify(@record)
-        url:  require('duality/core').getDBURL() + "/#{@record._id}"
+        url:  url
       ).success(@recordResponse(options))
        .error(@errorResponse(options))
   
@@ -189,13 +192,13 @@ class Singleton extends Base
   recordResponse: (options = {}) =>
     #console.log "records"
     (data, status, xhr) =>
-      log data
-      log status
-      log xhr
+      # log data
+      # log status
+      # log xhr
       if Spine.isBlank(data)
         data = false
       else if xhr.rows
-        log xhr.rows
+        # log xhr.rows
         data = @model.fromJSON(xhr.rows)
       else
         #console.log data.id
