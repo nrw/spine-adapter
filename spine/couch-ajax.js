@@ -1,4 +1,4 @@
-var $, Ajax, Base, Collection, CouchAjax, Extend, Include, Model, Singleton, async, utils, _;
+var $, Base, Collection, CouchAjax, Extend, Include, Model, Singleton, _;
 var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; }, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
   for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
   function ctor() { this.constructor = child; }
@@ -12,10 +12,7 @@ if (typeof Spine === "undefined" || Spine === null) {
 }
 $ = Spine.$;
 Model = Spine.Model;
-utils = require("duality/utils");
-Ajax = require("spine/ajax");
 _ = require("underscore")._;
-async = require("async");
 Spine.Model.include({
   toJSON: function() {
     var key, result, _i, _len, _ref;
@@ -200,7 +197,6 @@ Singleton = (function() {
     }, this));
   };
   Singleton.prototype.update = function(params, options) {
-    console.log(this.record);
     return this.queue(__bind(function() {
       return this.ajax(params, {
         type: 'PUT',

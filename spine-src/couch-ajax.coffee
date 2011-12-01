@@ -1,10 +1,7 @@
 Spine ?= require('spine/core')
 $      = Spine.$
 Model  = Spine.Model
-utils = require("duality/utils")
-Ajax = require("spine/ajax")
 _ = require("underscore")._
-async = require("async")
 
 Spine.Model.include
   toJSON: ->
@@ -136,7 +133,6 @@ class Singleton extends Base
        .error(@errorResponse(options))
 
   update: (params, options) ->
-    console.log @record
     @queue =>
       @ajax(
         params,

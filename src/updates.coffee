@@ -1,9 +1,34 @@
+_ = require("underscore")._
 
-# exports.model = (doc, req) ->
-#   log "models"
-#   log doc
-#   # form = new forms.Form(types.login, null, {})
-#   # form.validate req
-#   # if form.values.user and form.values.pass
-#   #   session.login form.values.user, form.values.pass, ((err)-> log err if err)
-#   [null, null]
+exports.model = (doc, req) ->
+  if req.method is 'POST'    
+    create(doc, req)
+  else if req.method is 'PUT'
+    update(doc, req)
+  else if req.method is 'DELETE'
+    destroy(doc, req)
+
+create = (doc, req) ->
+  doc = JSON.parse req.body
+  doc.modelname = req.query.modelname
+  doc._id = req.uuid
+  resp =
+    ok: yes
+    body: JSON.stringify(doc)
+  [doc, resp]
+
+update = (doc, req) ->
+  delete doc._revisions
+  new_fields = JSON.parse(req.body)
+  delete new_fields.id
+  updated_doc = _.defaults(new_fields, doc)
+  resp =
+    ok: yes
+    body: JSON.stringify(updated_doc)
+  [updated_doc, resp]
+
+destroy = (doc, req) ->
+  doc._deleted = yes
+  resp =
+    ok: yes
+  [doc, resp]
