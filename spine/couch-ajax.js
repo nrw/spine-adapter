@@ -1,4 +1,4 @@
-var $, Base, Collection, CouchAjax, Extend, Include, Model, Singleton, utils;
+var $, Ajax, Base, Collection, CouchAjax, Extend, Include, Model, Singleton, async, utils, _;
 var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; }, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
   for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
   function ctor() { this.constructor = child; }
@@ -13,6 +13,9 @@ if (typeof Spine === "undefined" || Spine === null) {
 $ = Spine.$;
 Model = Spine.Model;
 utils = require("duality/utils");
+Ajax = require("spine/ajax");
+_ = require("underscore")._;
+async = require("async");
 Spine.Model.include({
   toJSON: function() {
     var key, result, _i, _len, _ref;
@@ -28,12 +31,13 @@ Spine.Model.include({
         }
       }
     }
-    if (this.id) {
-      result._id = this.id;
+    if (this._id) {
+      result.id = result._id = this._id;
     }
-    result.modelname = this.constructor.className.toLowerCase();
     return result;
-  },
+  }
+});
+Spine.Model.extend({
   fromJSON: function(objects) {
     var value, _i, _len, _results;
     if (!objects) {
@@ -42,14 +46,26 @@ Spine.Model.include({
     if (typeof objects === 'string') {
       objects = JSON.parse(objects);
     }
-    if (isArray(objects)) {
+    if (Spine.isArray(objects)) {
       _results = [];
       for (_i = 0, _len = objects.length; _i < _len; _i++) {
         value = objects[_i];
+        if (!value.id) {
+          value.id = value._id;
+        }
+        if (!value._id) {
+          value._id = value.id;
+        }
         _results.push(new this(value));
       }
       return _results;
     } else {
+      if (!objects.id) {
+        objects.id = objects._id;
+      }
+      if (!objects._id) {
+        objects._id = objects.id;
+      }
       return new this(objects);
     }
   }
@@ -145,19 +161,12 @@ Collection = (function() {
         return this.model.refresh(record);
       }, this));
     } else {
-      return this.all(params);
+      return this.all(params).success(__bind(function(records) {
+        return this.model.refresh(_.pluck(records.rows, "doc"));
+      }, this));
     }
   };
   Collection.prototype.recordsResponse = function(data, status, xhr) {
-    var row, x, _i, _len, _ref;
-    x = [];
-    _ref = data.rows;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      row = _ref[_i];
-      x.push(row.doc);
-    }
-    this.model.refresh(x);
-    xhr.responseText = JSON.stringify(x);
     return this.model.trigger('ajaxSuccess', null, status, xhr);
   };
   Collection.prototype.errorResponse = function(xhr, statusText, error) {
@@ -170,7 +179,6 @@ Singleton = (function() {
   function Singleton(record) {
     this.record = record;
     this.errorResponse = __bind(this.errorResponse, this);
-    this.getRecordsResponse = __bind(this.getRecordsResponse, this);
     this.recordResponse = __bind(this.recordResponse, this);
     this.model = this.record.constructor;
   }
@@ -187,30 +195,25 @@ Singleton = (function() {
       return this.ajax(params, {
         type: 'POST',
         data: JSON.stringify(this.record),
-        url: require('duality/core').getDBURL()
+        url: CouchAjax.getURL(this.model)
       }).success(this.recordResponse(options)).error(this.errorResponse(options));
     }, this));
   };
   Singleton.prototype.update = function(params, options) {
-    var url;
-    url = utils.getBaseURL() + ("/model/" + this.record._id);
-    console.log(url);
+    console.log(this.record);
     return this.queue(__bind(function() {
-      delete this.record._rev;
       return this.ajax(params, {
         type: 'PUT',
         data: JSON.stringify(this.record),
-        url: url
+        url: CouchAjax.getURL(this.record)
       }).success(this.recordResponse(options)).error(this.errorResponse(options));
     }, this));
   };
   Singleton.prototype.destroy = function(params, options) {
-    console.log(JSON.stringify(this.record));
-    console.log("{'_rev': " + (JSON.stringify(this.record._rev)) + "}");
     return this.queue(__bind(function() {
       return this.ajax(params, {
         type: 'DELETE',
-        url: require('duality/core').getDBURL() + ("/" + this.record._id + "?rev=" + this.record._rev)
+        url: CouchAjax.getURL(this.record)
       }).success(this.recordResponse(options)).error(this.errorResponse(options));
     }, this));
   };
@@ -219,27 +222,24 @@ Singleton = (function() {
       options = {};
     }
     return __bind(function(data, status, xhr) {
+      var _ref;
       if (Spine.isBlank(data)) {
-        return data = false;
-      } else if (xhr.rows) {
-        return data = this.model.fromJSON(xhr.rows);
+        data = false;
+      } else if (data.rows) {
+        data = this.model.fromJSON(_.pluck(data.rows, "doc"));
       } else {
-        return this.queue(__bind(function() {
-          return this.ajax({
-            type: 'GET',
-            url: require('duality/core').getDBURL() + ("/" + data.id)
-          }).success(this.getRecordsResponse(options)).error(this.errorResponse(options));
-        }, this));
+        data = this.model.fromJSON(data);
       }
-    }, this);
-  };
-  Singleton.prototype.getRecordsResponse = function(options) {
-    if (options == null) {
-      options = {};
-    }
-    return __bind(function(xhr, statusText, error) {
-      log("got records");
-      return this.model.fromJSON(xhr);
+      CouchAjax.disable(__bind(function() {
+        if (data) {
+          if (data.id && this.record.id !== data.id) {
+            this.record.changeID(data.id);
+          }
+          return this.record.updateAttributes(data.attributes());
+        }
+      }, this));
+      this.record.trigger('ajaxSuccess', data, status, xhr);
+      return (_ref = options.success) != null ? _ref.apply(this.record) : void 0;
     }, this);
   };
   Singleton.prototype.errorResponse = function(options) {
