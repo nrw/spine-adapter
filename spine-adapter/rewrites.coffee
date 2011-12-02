@@ -1,5 +1,4 @@
 module.exports = [  
-
   from: "/spine-adapter/:modelname"
   to: "_update/spine_adapter_model"
   method: "POST"
@@ -19,5 +18,4 @@ module.exports = [
     start_key: [":modelname"]
     end_key: [":modelname", {}]
     include_docs: "true"
-
 ]

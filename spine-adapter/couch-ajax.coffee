@@ -2,7 +2,7 @@ Spine ?= require('spine/core')
 $      = Spine.$
 Model  = Spine.Model
 _ = require("underscore")._
-utils = require("duality/utils")
+duality = require("duality/core")
 
 Spine.Model.include
   toJSON: ->
@@ -196,7 +196,7 @@ Extend =
   ajax: -> new Collection(this)
 
   url: ->
-    "#{utils.getBaseURL()}/spine-adapter/#{@className.toLowerCase()}"
+    "#{duality.getBaseURL()}/spine-adapter/#{@className.toLowerCase()}"
       
 Model.CouchAjax =
   extended: ->

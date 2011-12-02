@@ -2,6 +2,7 @@
   "name": "spine-adapter",
   "version": "0.0.1",
   "description": "kanso adapter for spine",
+  
   "modules": ["spine-adapter"],
   "load": "spine-adapter/app",
   
@@ -16,7 +17,8 @@
     "modules": null,
     "spine": null,
     "underscore": null,
-    "coffee-script-precompiler": null
+    "coffee-script-precompiler": null,
+    "duality": null
 
   }
 }
