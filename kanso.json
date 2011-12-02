@@ -2,11 +2,21 @@
   "name": "spine-adapter",
   "version": "0.0.1",
   "description": "kanso adapter for spine",
-  "modules": ["spine", "lib"],
-  "load": "lib/app",
+  "modules": ["spine-adapter"],
+  "load": "spine-adapter/app",
+  
+  "coffee-script": {
+    "modules": ["spine-adapter"]  
+  },
+
   "dependencies": {
     "settings": null,
+    "properties": null,
+    "attachments": null,
     "modules": null,
-    "spine": null
+    "spine": null,
+    "underscore": null,
+    "coffee-script-precompiler": null
+
   }
 }
