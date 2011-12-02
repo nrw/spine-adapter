@@ -1,5 +1,3 @@
-
-
 module.exports = [  
 
   from: "/spine-adapter/:modelname"
