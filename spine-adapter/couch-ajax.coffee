@@ -99,7 +99,7 @@ class Collection extends Base
     if id = params.id
       delete params.id
       @find(id, params).success (record) =>
-        @model.refresh(record)
+        @model.refresh(_.pluck(record.rows, "doc"))
     else
       @all(params).success (records) =>
         @model.refresh(_.pluck(records.rows, "doc"))

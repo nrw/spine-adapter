@@ -1,3 +1,4 @@
 exports.spine_adapter_docs_by_modelname = 
   map: (doc) ->
-    emit [doc.modelname], null
+    if doc.modelname
+      emit [doc.modelname, doc._id], null

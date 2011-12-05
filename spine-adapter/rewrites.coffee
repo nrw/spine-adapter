@@ -18,4 +18,12 @@ module.exports = [
     start_key: [":modelname"]
     end_key: [":modelname", {}]
     include_docs: "true"
+,
+  from: "/spine-adapter/:modelname/:id"
+  to: "_view/spine_adapter_docs_by_modelname"
+  method: "GET"
+  query:
+    start_key: [":modelname", ":id"]
+    end_key: [":modelname", ":id", {}]
+    include_docs: "true"
 ]
