@@ -1,12 +1,11 @@
 Spine   ?= require('spine')
 require ?= ((value) -> eval(value))
-duality = require("duality/core")
-_ = require("underscore")._
 
 class Collection extends Spine.Module
   constructor: (options = {}) ->
     for key, value of options
       @[key] = value
+        
   all: ->
     @model.select (rec) => @associated(rec)
     
@@ -16,26 +15,7 @@ class Collection extends Spine.Module
   last: ->
     values = @all()
     values[values.length - 1]
-  
-  fetch: () ->
-    console.log "fetch"
-    console.log @
-    url = "#{duality.getBaseURL()}/spine-adapter/belongs-to/#{singularize(@name)}/#{@record.id}"
-    console.log url
-    $.ajax(
-      contentType: 'application/json'
-      dataType: 'json'
-      processData: false
-      headers: {'X-Requested-With': 'XMLHttpRequest'}
-      type: 'GET'
-      url:  url
-    ).success (records) =>
-      console.log "success"
-      console.log records
-      @model.refresh(_.pluck(records.rows, "doc"))
-  
-
-
+    
   find: (id) ->
     records = @select (rec) =>
       rec.id + '' is id + ''
@@ -103,10 +83,7 @@ class Singleton extends Spine.Module
 
 singularize = (str) ->
   str.replace(/s$/, '')
-
-strip_id = (str) ->
-  str.replace(/_id$/, '')  
-
+  
 underscore = (str) ->
   str.replace(/::/g, '/')
      .replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
@@ -115,8 +92,8 @@ underscore = (str) ->
      .toLowerCase()
 
 Spine.Model.extend 
-  hasMany: (name, model, fkey) ->
-    fkey ?= "belongs_to"#"#{underscore(this.className)}_id"
+  hasMany: (name, model, fkey) -> 
+    fkey ?= "#{underscore(this.className)}_id"
     
     association = (record) -> 
       model = require(model) if typeof model is 'string'
@@ -131,7 +108,7 @@ Spine.Model.extend
       association(@)
   
   belongsTo: (name, model, fkey) ->
-    fkey ?= "owns"#"#{singularize(name)}_id"
+    fkey ?= "#{singularize(name)}_id"
     
     association = (record) ->
       model = require(model) if typeof model is 'string'
@@ -148,7 +125,7 @@ Spine.Model.extend
     @attributes.push(fkey)
     
   hasOne: (name, model, fkey) -> 
-    fkey ?= "owns"#"#{underscore(@className)}_id"
+    fkey ?= "#{underscore(@className)}_id"
     
     association = (record) ->
       model = require(model) if typeof model is 'string'
