@@ -1,6 +1,6 @@
 {
   "name": "spine-adapter",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "kanso adapter for spine",
   "categories": ["utils"],  
   "modules": ["spine-adapter"],

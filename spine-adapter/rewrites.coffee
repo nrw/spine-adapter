@@ -1,4 +1,12 @@
-module.exports = [  
+module.exports = [
+  from: "/spine-adapter/belongs-to/:modelname/:owner"
+  to: "_view/spine_adapter_docs_by_belongs_to"
+  method: "GET"
+  query:
+    start_key: [":modelname", ":owner"]
+    end_key: [":modelname", ":owner", {}]
+    include_docs: "true"
+,
   from: "/spine-adapter/:modelname"
   to: "_update/spine_adapter_model"
   method: "POST"
