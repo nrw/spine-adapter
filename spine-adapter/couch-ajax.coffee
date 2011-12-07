@@ -14,21 +14,36 @@ Spine.Model.include
         result[key] = @[key]
     result.id = result._id = @_id if @_id
     result
-
+# Spine.Model.extend
+#   fromJSON: (objects) ->
+#     make_object = (val) =>
+#       @log val
+#       val.id = val._id if val?._id
+#       new @(val)
+    
+#     return unless objects
+#     if typeof objects is 'string'
+#       objects = JSON.parse(objects)
+#     if Spine.isArray(objects)
+#       for value in objects
+#         make_object(value)
+#     else
+#       make_object(objects)
+#       new @(objects)
 Spine.Model.extend
   fromJSON: (objects) ->
+    make_object = (val) =>
+      val.id = val._id unless val.id
+      val._id = val.id unless val._id
+      new @(val)
     return unless objects
     if typeof objects is 'string'
       objects = JSON.parse(objects)
     if Spine.isArray(objects)
       for value in objects
-        value.id = value._id unless value.id
-        value._id = value.id unless value._id
-        new @(value)
+        make_object(value)
     else
-      objects.id = objects._id unless objects.id
-      objects._id = objects.id unless objects._id
-      new @(objects)
+      make_object(objects)
 
 CouchAjax =
   getURL: (object) ->
