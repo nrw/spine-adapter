@@ -14,22 +14,7 @@ Spine.Model.include
         result[key] = @[key]
     result.id = result._id = @_id if @_id
     result
-# Spine.Model.extend
-#   fromJSON: (objects) ->
-#     make_object = (val) =>
-#       @log val
-#       val.id = val._id if val?._id
-#       new @(val)
-    
-#     return unless objects
-#     if typeof objects is 'string'
-#       objects = JSON.parse(objects)
-#     if Spine.isArray(objects)
-#       for value in objects
-#         make_object(value)
-#     else
-#       make_object(objects)
-#       new @(objects)
+
 Spine.Model.extend
   fromJSON: (objects) ->
     make_object = (val) =>
