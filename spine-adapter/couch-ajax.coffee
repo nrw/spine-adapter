@@ -59,7 +59,7 @@ CouchAjax =
       @requests.push(callback)
     else
       @pending = true
-      @request(callback)    
+      @request(callback)
     callback
     
 class Base
@@ -76,7 +76,7 @@ class Base
     CouchAjax.queue(callback)
 
 class Collection extends Base
-  constructor: (@model) -> 
+  constructor: (@model) ->
     
   find: (id, params) ->
     record = new @model(id: id)
@@ -163,6 +163,8 @@ class Singleton extends Base
       else
         data = @model.fromJSON(data)
     
+      data._rev = data._rev || xhr.getResponseHeader( 'X-Couch-Update-NewRev' )
+
       CouchAjax.disable =>
         if data
           # ID change, need to do some shifting
@@ -192,7 +194,7 @@ Include =
     base += encodeURIComponent(@id)
     base
     
-Extend = 
+Extend =
   ajax: -> new Collection(this)
 
   url: ->
@@ -212,7 +214,7 @@ Model.CouchAjax =
   ajaxChange: (record, type, options = {}) ->
     record.ajax()[type](options.ajax, options)
     
-Model.CouchAjax.Methods = 
+Model.CouchAjax.Methods =
   extended: ->
     @extend Extend
     @include Include
