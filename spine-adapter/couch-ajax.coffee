@@ -1,6 +1,7 @@
 Spine ?= require('spine/core')
 $      = Spine.$
 Model  = Spine.Model
+db     = require("db")
 _ = require("underscore")._
 duality = require("duality/core")
 
@@ -163,7 +164,7 @@ class Singleton extends Base
       else
         data = @model.fromJSON(data)
     
-      data._rev = data._rev || xhr.getResponseHeader( 'X-Couch-Update-NewRev' )
+      data._rev = xhr.getResponseHeader( 'X-Couch-Update-NewRev' )
 
       CouchAjax.disable =>
         if data
@@ -181,6 +182,43 @@ class Singleton extends Base
     (xhr, statusText, error) =>
       @record.trigger('ajaxError', xhr, statusText, error)
       options.error?.apply(@record)
+
+Changes = () ->
+  subscribers  = {}
+  appdb = db.use(require('duality/core').getDBURL())
+  
+  q = include_docs: yes
+    
+  console.log( "_changes handler entered" )
+  appdb.changes q, (err, resp) =>
+    # disable updating the already updated database
+    Spine.CouchAjax.disable ->
+      for doc in resp?.results
+        klass = subscribers[ doc.doc?.modelname ]
+        if klass
+          atts = doc.doc
+          atts.id = atts._id unless atts.id
+          try
+            obj = klass.find( atts.id )
+            console.log(" ID #{atts.id} found" )
+            if doc.deleted
+              obj.destroy()
+              console.log(" ID #{atts.id} destroyed" )
+            else
+              unless obj._rev is atts._rev
+                obj.updateAttributes( atts )
+                console.log(" ID #{atts.id} updated" )
+                console.log( atts )
+          catch e
+            klass.create( atts ) unless doc.deleted
+            console.log(" ID #{atts.id} created" )
+        else
+          console.log( "changes: can't find subscriber for #{doc.doc._id}" )
+    yes
+
+  subscribe: ( classname, klass ) ->
+    subscribers[ classname.toLowerCase() ] = klass
+
 
 # CouchAjax endpoint
 Model.host = ''
@@ -202,6 +240,10 @@ Extend =
       
 Model.CouchAjax =
   extended: ->
+    # need to keep _rev around to support changes feed processing
+    @attributes.push( "_rev" ) unless @attributes[ "_rev" ]
+    Changes().subscribe( @className, @ )
+
     @fetch @ajaxFetch
     @change @ajaxChange
     
