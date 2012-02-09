@@ -189,7 +189,6 @@ Changes = () ->
   
   q = include_docs: yes
     
-  console.log( "_changes handler entered" )
   appdb.changes q, (err, resp) =>
     # disable updating the already updated database
     Spine.CouchAjax.disable ->
@@ -200,20 +199,15 @@ Changes = () ->
           atts.id = atts._id unless atts.id
           try
             obj = klass.find( atts.id )
-            console.log(" ID #{atts.id} found" )
             if doc.deleted
               obj.destroy()
-              console.log(" ID #{atts.id} destroyed" )
             else
               unless obj._rev is atts._rev
                 obj.updateAttributes( atts )
-                console.log(" ID #{atts.id} updated" )
-                console.log( atts )
           catch e
             klass.create( atts ) unless doc.deleted
-            console.log(" ID #{atts.id} created" )
         else
-          console.log( "changes: can't find subscriber for #{doc.doc._id}" )
+          console.warn( "changes: can't find subscriber for #{doc.doc.modelname}" )
     yes
 
   subscribe: ( classname, klass ) ->
