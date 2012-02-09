@@ -1,6 +1,7 @@
 Spine ?= require('spine/core')
 $      = Spine.$
 Model  = Spine.Model
+db     = require("db")
 _ = require("underscore")._
 duality = require("duality/core")
 
@@ -59,7 +60,7 @@ CouchAjax =
       @requests.push(callback)
     else
       @pending = true
-      @request(callback)    
+      @request(callback)
     callback
     
 class Base
@@ -76,7 +77,7 @@ class Base
     CouchAjax.queue(callback)
 
 class Collection extends Base
-  constructor: (@model) -> 
+  constructor: (@model) ->
     
   find: (id, params) ->
     record = new @model(id: id)
@@ -163,6 +164,8 @@ class Singleton extends Base
       else
         data = @model.fromJSON(data)
     
+      data._rev = xhr.getResponseHeader( 'X-Couch-Update-NewRev' )
+
       CouchAjax.disable =>
         if data
           # ID change, need to do some shifting
@@ -180,6 +183,37 @@ class Singleton extends Base
       @record.trigger('ajaxError', xhr, statusText, error)
       options.error?.apply(@record)
 
+Changes = () ->
+  subscribers  = {}
+  appdb = db.use(require('duality/core').getDBURL())
+  
+  q = include_docs: yes
+    
+  appdb.changes q, (err, resp) =>
+    # disable updating the already updated database
+    Spine.CouchAjax.disable ->
+      for doc in resp?.results
+        klass = subscribers[ doc.doc?.modelname ]
+        if klass
+          atts = doc.doc
+          atts.id = atts._id unless atts.id
+          try
+            obj = klass.find( atts.id )
+            if doc.deleted
+              obj.destroy()
+            else
+              unless obj._rev is atts._rev
+                obj.updateAttributes( atts )
+          catch e
+            klass.create( atts ) unless doc.deleted
+        else
+          console.warn( "changes: can't find subscriber for #{doc.doc.modelname}" )
+    yes
+
+  subscribe: ( classname, klass ) ->
+    subscribers[ classname.toLowerCase() ] = klass
+
+
 # CouchAjax endpoint
 Model.host = ''
 
@@ -192,7 +226,7 @@ Include =
     base += encodeURIComponent(@id)
     base
     
-Extend = 
+Extend =
   ajax: -> new Collection(this)
 
   url: ->
@@ -200,6 +234,10 @@ Extend =
       
 Model.CouchAjax =
   extended: ->
+    # need to keep _rev around to support changes feed processing
+    @attributes.push( "_rev" ) unless @attributes[ "_rev" ]
+    Changes().subscribe( @className, @ )
+
     @fetch @ajaxFetch
     @change @ajaxChange
     
@@ -212,7 +250,7 @@ Model.CouchAjax =
   ajaxChange: (record, type, options = {}) ->
     record.ajax()[type](options.ajax, options)
     
-Model.CouchAjax.Methods = 
+Model.CouchAjax.Methods =
   extended: ->
     @extend Extend
     @include Include
