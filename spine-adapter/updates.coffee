@@ -1,4 +1,4 @@
-{_} = require("underscore")
+{_} = require "underscore"
 
 exports.spine_adapter_model = (doc, req) ->
   if req.method is 'POST'    
@@ -31,4 +31,5 @@ destroy = (doc, req) ->
   doc._deleted = yes
   resp =
     ok: yes
+    body: JSON.stringify({})
   [doc, resp]

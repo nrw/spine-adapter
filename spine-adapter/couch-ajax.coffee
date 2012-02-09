@@ -1,7 +1,7 @@
-Spine ?= require('spine/core')
-$      = Spine.$
-Model  = Spine.Model
-_ = require("underscore")._
+Spine  ?= require('spine/core')
+$       = Spine.$
+Model   = Spine.Model
+{_}     = require("underscore")
 duality = require("duality/core")
 
 Spine.Model.include
