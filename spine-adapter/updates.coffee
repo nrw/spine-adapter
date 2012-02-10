@@ -1,7 +1,7 @@
 {_} = require "underscore"
 
 exports.spine_adapter_model = (doc, req) ->
-  if req.method is 'POST'    
+  if req.method is 'POST'
     create(doc, req)
   else if req.method is 'PUT'
     update(doc, req)
