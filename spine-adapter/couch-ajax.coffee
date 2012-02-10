@@ -192,9 +192,6 @@ class Changes
     
   appdb.changes q, (err, resp) =>
     # disable updating the already updated database
-    console.log "err", err
-    console.log "resp", resp
-    console.log subscribers
     Spine.CouchAjax.disable ->
       for doc in resp?.results
         klass = subscribers[ doc.doc?.modelname ]
