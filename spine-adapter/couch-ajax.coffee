@@ -184,7 +184,7 @@ class Singleton extends Base
       @record.trigger('ajaxError', xhr, statusText, error)
       options.error?.apply(@record)
 
-Changes = () ->
+class Changes
   subscribers  = {}
   appdb = db.use(require('duality/core').getDBURL())
   
@@ -192,6 +192,9 @@ Changes = () ->
     
   appdb.changes q, (err, resp) =>
     # disable updating the already updated database
+    console.log "err", err
+    console.log "resp", resp
+    console.log subscribers
     Spine.CouchAjax.disable ->
       for doc in resp?.results
         klass = subscribers[ doc.doc?.modelname ]
@@ -234,10 +237,11 @@ Extend =
     "#{duality.getBaseURL()}/spine-adapter/#{@className.toLowerCase()}"
       
 Model.CouchAjax =
+  changes: new Changes
   extended: ->
     # need to keep _rev around to support changes feed processing
     @attributes.push( "_rev" ) unless @attributes[ "_rev" ]
-    Changes().subscribe( @className, @ )
+    @changes.subscribe( @className, @ )
 
     @fetch @ajaxFetch
     @change @ajaxChange
