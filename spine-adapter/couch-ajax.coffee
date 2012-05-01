@@ -1,4 +1,4 @@
-Spine  ?= require('spine/core')
+Spine   = require('spine/core')
 $       = Spine.$
 Model   = Spine.Model
 {_}     = require("underscore")
