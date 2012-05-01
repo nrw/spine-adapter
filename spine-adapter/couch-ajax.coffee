@@ -1,4 +1,4 @@
-Spine  ?= require 'spine/core'
+Spine   = require 'spine/core'
 $       = Spine.$
 Model   = Spine.Model
 duality = require "duality/core"
@@ -239,7 +239,7 @@ Model.CouchAjax =
     # need to keep _rev around to support changes feed processing
     @attributes.push( "_rev" ) unless @attributes[ "_rev" ]
     @changes.subscribe( @className, @ )
-
+    
     @fetch @ajaxFetch
     @change @ajaxChange
     
