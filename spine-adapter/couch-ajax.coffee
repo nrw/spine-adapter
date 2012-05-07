@@ -185,34 +185,37 @@ class Singleton extends Base
       options.error?.apply(@record)
 
 class Changes
-  subscribers  = {}
-  appdb = db.use(require('duality/core').getDBURL())
+  subscribers: {}
+  appdb: db.use(require('duality/core').getDBURL())
+  q: include_docs: yes
   
-  q = include_docs: yes
-    
-  appdb.changes q, (err, resp) =>
-    # disable updating the already updated database
-    Spine.CouchAjax.disable ->
-      for doc in resp?.results
-        klass = subscribers[ doc.doc?.modelname ]
-        if klass
-          atts = doc.doc
-          atts.id = atts._id unless atts.id
-          try
-            obj = klass.find( atts.id )
-            if doc.deleted
-              obj.destroy()
-            else
-              unless obj._rev is atts._rev
-                obj.updateAttributes( atts )
-          catch e
-            klass.create( atts ) unless doc.deleted
-        else
-          console.warn( "changes: can't find subscriber for #{doc.doc.modelname}" )
-    yes
+  constructor: ->
+    @addChanges()
+
+  addChanges: =>
+    @appdb.changes @q, (err, resp) =>
+      # disable updating the already updated database
+      Spine.CouchAjax.disable ->
+        for doc in resp?.results
+          klass = @subscribers[ doc.doc?.modelname ]
+          if klass
+            atts = doc.doc
+            atts.id = atts._id unless atts.id
+            try
+              obj = klass.find( atts.id )
+              if doc.deleted
+                obj.destroy()
+              else
+                unless obj._rev is atts._rev
+                  obj.updateAttributes( atts )
+            catch e
+              klass.create( atts ) unless doc.deleted
+          else
+            console.warn "changes: can't find subscriber for #{doc.doc.modelname}"
+      yes
 
   subscribe: ( classname, klass ) ->
-    subscribers[ classname.toLowerCase() ] = klass
+    @subscribers[ classname.toLowerCase() ] = klass
 
 
 # CouchAjax endpoint
@@ -234,7 +237,7 @@ Extend =
     "#{duality.getBaseURL()}/spine-adapter/#{@className.toLowerCase()}"
       
 Model.CouchAjax =
-  changes: new Changes
+  changes: new Changes()
   extended: ->
     # need to keep _rev around to support changes feed processing
     @attributes.push( "_rev" ) unless @attributes[ "_rev" ]
