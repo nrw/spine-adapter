@@ -190,14 +190,15 @@ class Changes
   q: include_docs: yes
   
   constructor: ->
-    @addChanges()
+    setTimeout @addChanges, 2000
 
   addChanges: =>
     @appdb.changes @q, (err, resp) =>
       # disable updating the already updated database
       Spine.CouchAjax.disable ->
         for doc in resp?.results
-          klass = @subscribers[ doc.doc?.modelname ]
+          modelname = doc.doc?.modelname
+          klass = @subscribers[modelname] if modelname
           if klass
             atts = doc.doc
             atts.id = atts._id unless atts.id
