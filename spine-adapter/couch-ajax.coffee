@@ -195,7 +195,7 @@ class Changes
   addChanges: =>
     @appdb.changes @q, (err, resp) =>
       # disable updating the already updated database
-      Spine.CouchAjax.disable ->
+      Spine.CouchAjax.disable =>
         for doc in resp?.results
           modelname = doc.doc?.modelname
           klass = @subscribers[modelname] if modelname
@@ -215,7 +215,7 @@ class Changes
             console.warn "changes: can't find subscriber for #{doc.doc.modelname}"
       yes
 
-  subscribe: ( classname, klass ) ->
+  subscribe: ( classname, klass ) =>
     @subscribers[ classname.toLowerCase() ] = klass
 
 
