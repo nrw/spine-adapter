@@ -186,7 +186,7 @@ class Singleton extends Base
 
 class Changes
   subscribers: {}
-  appdb: db.use(require('duality/core').getDBURL())
+  appdb: db.use require('duality/core').getDBURL()
   q: include_docs: yes
   
   constructor: ->
@@ -215,8 +215,8 @@ class Changes
             console.warn "changes: can't find subscriber for #{doc.doc.modelname}"
       yes
 
-  subscribe: ( classname, klass ) =>
-    @subscribers[ classname.toLowerCase() ] = klass
+  subscribe: (classname, klass) =>
+    @subscribers[classname.toLowerCase()] = klass
 
 
 # CouchAjax endpoint
