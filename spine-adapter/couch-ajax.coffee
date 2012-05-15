@@ -155,7 +155,6 @@ class Singleton extends Base
        .error(@errorResponse(options))
 
   # Private
-
   recordResponse: (options = {}) =>
     (data, status, xhr) =>
       if Spine.isBlank(data)
@@ -238,7 +237,7 @@ Extend =
     "#{duality.getBaseURL()}/spine-adapter/#{@className.toLowerCase()}"
       
 Model.CouchAjax =
-  changes: new Changes()
+  changes: new Changes
   extended: ->
     # need to keep _rev around to support changes feed processing
     @attributes.push( "_rev" ) unless @attributes[ "_rev" ]
