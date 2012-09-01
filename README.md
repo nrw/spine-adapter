@@ -12,19 +12,34 @@ Add `spine-adapter` to your dependencies in `kanso.json` and run `kanso fetch`.
 }
 ```
 
-`require` Spine modules you'll use. `spine/core` is required for any use of Spine. `spine-adapter/couch-ajax` is required to persist your models in couchdb.
+`require` Spine modules you'll use. `spine/core` is required for any use of Spine. `spine-adapter/couch-ajax` is required to persist your models in couchdb. `spine-adapter/couch-changes` is required to handle `_changes` feed.
 
 ```coffeescript
 # Creates the global 'Spine' object
 require("spine/core")
 require("spine-adapter/couch-ajax")
+require("spine-adapter/couch-changes")
 
 class BlogPost extends Spine.Model
   @configure "BlogPost", "title", "body"
 
   # Enables CouchDB storage for instances of this model
   @extend Spine.Model.CouchAjax
+  # Subscribes on _changes feed
+  @extend Spine.Model.CouchChanges()
 ```
+
+You may specify database url and override changes handler by passing options as an argument to CouchChanges
+
+```coffeescript
+class BlogPost extends Spine.Model
+  ...
+  @extend Spine.Model.CouchChanges
+    url:     "/blogs"
+    handler: Spine.Model.CouchChanges.PrivateChanges
+```
+
+Using of PrivateChanges handle will connect to `_changes` feed only when user is authenticated.
 
 To fetch a specific set of records (rather than all records of a type), use the `db` module to retreive a view. Pass the docs from that view to the model's `refresh` method.
 
