@@ -54,7 +54,7 @@ CouchAjax =
 
   request: (callback) ->
     (do callback).complete(=> do @requestNext)
-      
+
   queue: (callback) ->
     return unless @enabled
     if @pending
@@ -63,23 +63,23 @@ CouchAjax =
       @pending = true
       @request(callback)
     callback
-    
+
 class Base
   defaults:
     contentType: 'application/json'
     dataType: 'json'
     processData: false
     headers: {'X-Requested-With': 'XMLHttpRequest'}
-  
+
   ajax: (params, defaults) ->
     $.ajax($.extend({}, @defaults, defaults, params))
-    
+
   queue: (callback) ->
     CouchAjax.queue(callback)
 
 class Collection extends Base
   constructor: (@model) ->
-    
+
   find: (id, params) ->
     record = new @model(id: id)
     @ajax(
@@ -88,7 +88,7 @@ class Collection extends Base
       url:  CouchAjax.getURL(record)
     ).success(@recordsResponse)
      .error(@errorResponse)
-    
+
   all: (params) ->
     @ajax(
       params,
@@ -96,7 +96,7 @@ class Collection extends Base
       url:  CouchAjax.getURL(@model)
     ).success(@recordsResponse)
      .error(@errorResponse)
-    
+
   fetch: (params = {}) ->
     if id = params.id
       delete params.id
@@ -105,7 +105,7 @@ class Collection extends Base
     else
       @all(params).success (records) =>
         @model.refresh(_.pluck(records.rows, "doc"))
-    
+
   recordsResponse: (data, status, xhr) =>
     @model.trigger('ajaxSuccess', null, status, xhr)
 
@@ -115,7 +115,7 @@ class Collection extends Base
 class Singleton extends Base
   constructor: (@record) ->
     @model = @record.constructor
-  
+
   reload: (params, options) ->
     @queue =>
       @ajax(
@@ -124,7 +124,7 @@ class Singleton extends Base
         url:  CouchAjax.getURL(@record)
       ).success(@recordResponse(options))
        .error(@errorResponse(options))
-  
+
   create: (params, options) ->
     @queue =>
       @ajax(
@@ -144,7 +144,7 @@ class Singleton extends Base
         url:  CouchAjax.getURL(@record)
       ).success(@recordResponse(options))
        .error(@errorResponse(options))
-  
+
   destroy: (params, options) ->
     @queue =>
       @ajax(
@@ -163,7 +163,7 @@ class Singleton extends Base
         data = @model.fromJSON(_.pluck(data.rows, "doc"))
       else
         data = @model.fromJSON(data)
-    
+
       data._rev = xhr.getResponseHeader( 'X-Couch-Update-NewRev' )
 
       CouchAjax.disable =>
@@ -174,48 +174,14 @@ class Singleton extends Base
 
           # Update with latest data
           @record.updateAttributes(data.attributes())
-        
+
       @record.trigger('ajaxSuccess', data, status, xhr)
       options.success?.apply(@record)
-      
+
   errorResponse: (options = {}) =>
     (xhr, statusText, error) =>
       @record.trigger('ajaxError', xhr, statusText, error)
       options.error?.apply(@record)
-
-class Changes
-  subscribers: {}
-  appdb: db.use require('duality/core').getDBURL()
-  q: include_docs: yes
-  
-  constructor: ->
-    setTimeout @addChanges, 2000
-
-  addChanges: =>
-    @appdb.changes @q, (err, resp) =>
-      # disable updating the already updated database
-      Spine.CouchAjax.disable =>
-        for doc in resp?.results
-          modelname = doc.doc?.modelname
-          klass = @subscribers[modelname] if modelname
-          if klass
-            atts = doc.doc
-            atts.id = atts._id unless atts.id
-            try
-              obj = klass.find( atts.id )
-              if doc.deleted
-                obj.destroy()
-              else
-                unless obj._rev is atts._rev
-                  obj.updateAttributes( atts )
-            catch e
-              klass.create( atts ) unless doc.deleted
-          else
-            console.warn "changes: can't find subscriber for #{doc.doc.modelname}"
-      yes
-
-  subscribe: (classname, klass) =>
-    @subscribers[classname.toLowerCase()] = klass
 
 
 # CouchAjax endpoint
@@ -229,37 +195,32 @@ Include =
     base += '/' unless base.charAt(base.length - 1) is '/'
     base += encodeURIComponent(@id)
     base
-    
+
 Extend =
   ajax: -> new Collection(this)
 
   url: ->
     "#{duality.getBaseURL()}/spine-adapter/#{@className.toLowerCase()}"
-      
+
 Model.CouchAjax =
-  changes: new Changes
   extended: ->
-    # need to keep _rev around to support changes feed processing
-    @attributes.push( "_rev" ) unless @attributes[ "_rev" ]
-    @changes.subscribe( @className, @ )
-    
     @fetch @ajaxFetch
     @change @ajaxChange
-    
+
     @extend Extend
     @include Include
-    
+
   ajaxFetch: ->
     @ajax().fetch(arguments...)
-    
+
   ajaxChange: (record, type, options = {}) ->
     record.ajax()[type](options.ajax, options)
-    
+
 Model.CouchAjax.Methods =
   extended: ->
     @extend Extend
     @include Include
-    
+
 # Globals
 CouchAjax.defaults   = Base::defaults
 Spine.CouchAjax      = CouchAjax
