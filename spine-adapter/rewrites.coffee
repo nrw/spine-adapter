@@ -3,8 +3,8 @@ module.exports = [
   to: "_view/spine_adapter_docs_by_belongs_to"
   method: "GET"
   query:
-    start_key: [":modelname", ":owner"]
-    end_key: [":modelname", ":owner", {}]
+    startkey: [":modelname", ":owner"]
+    endkey: [":modelname", ":owner", {}]
     include_docs: "true"
 ,
   from: "/spine-adapter/:modelname"
@@ -23,15 +23,15 @@ module.exports = [
   to: "_view/spine_adapter_docs_by_modelname"
   method: "GET"
   query:
-    start_key: [":modelname"]
-    end_key: [":modelname", {}]
+    startkey: [":modelname"]
+    endkey: [":modelname", {}]
     include_docs: "true"
 ,
   from: "/spine-adapter/:modelname/:id"
   to: "_view/spine_adapter_docs_by_modelname"
   method: "GET"
   query:
-    start_key: [":modelname", ":id"]
-    end_key: [":modelname", ":id", {}]
+    startkey: [":modelname", ":id"]
+    endkey: [":modelname", ":id", {}]
     include_docs: "true"
 ]
